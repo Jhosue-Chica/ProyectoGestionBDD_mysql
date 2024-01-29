@@ -86,12 +86,14 @@ public class MenuInterfazGUI {
         button1.addActionListener(e -> {
             // Crear una instancia de MenuEmpleados y mostrarla
             SwingUtilities.invokeLater(() -> {
+                // Cerrar el JFrame actual al hacer clic en el botón
+                SwingUtilities.getWindowAncestor(button1).dispose();
                 MenuEmp menuGAD = new MenuEmp();
                 menuGAD.setVisible(true);
             });
         });
 
-// ActionListener para el botón "Gestionar GADs"
+
 // ActionListener para el botón "Gestionar GADs"
         button2.addActionListener(e -> {
             // Crear una instancia de MenuGAD y mostrarla

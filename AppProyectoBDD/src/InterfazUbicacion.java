@@ -39,6 +39,8 @@ public class InterfazUbicacion extends javax.swing.JFrame {
             botonRegresar.addActionListener(e -> {
             MenuGADs menuGAD = new MenuGADs();
             menuGAD.setVisible(true);
+            dispose();
+            
             });
 
             JPanel panelBotones = new JPanel();
@@ -322,17 +324,17 @@ class VentanaActualizarUbicacion extends JFrame {
     private void guardarCambios() {
         try {
             Connection conexion = Conexion.obtenerConexion();
-
-            String consulta = "UPDATE UBICACION SET nombre = ?, estado = ?, id_padre = ?, tipo_ubicacion = ? WHERE id_ubicacion = ?";
-            try (PreparedStatement preparedStatement = conexion.prepareStatement(consulta)) {
-                preparedStatement.setString(1, campoNombre.getText());
-                preparedStatement.setBoolean(2, Boolean.parseBoolean(campoEstado.getText()));
-                preparedStatement.setInt(3, Integer.parseInt(campoIdPadre.getText()));
-                preparedStatement.setString(4, campoTipoUbicacion.getText());
-                preparedStatement.setInt(5, ubicacion.getIdUbicacion());
-
-                int filasActualizadas = preparedStatement.executeUpdate();
-
+    
+            // Llamada al procedimiento almacenado
+            try (CallableStatement callableStatement = conexion.prepareCall("{call sp_actualizar_ubicacion(?, ?, ?, ?, ?)}")) {
+                callableStatement.setString(1, campoNombre.getText());
+                callableStatement.setBoolean(2, Boolean.parseBoolean(campoEstado.getText()));
+                callableStatement.setInt(3, Integer.parseInt(campoIdPadre.getText()));
+                callableStatement.setString(4, campoTipoUbicacion.getText());
+                callableStatement.setInt(5, ubicacion.getIdUbicacion());
+    
+                int filasActualizadas = callableStatement.executeUpdate();
+    
                 if (filasActualizadas > 0) {
                     JOptionPane.showMessageDialog(this, "Cambios guardados correctamente");
                     ventanaPrincipal.actualizarTabla();
@@ -345,4 +347,5 @@ class VentanaActualizarUbicacion extends JFrame {
             e.printStackTrace();
         }
     }
+    
 }

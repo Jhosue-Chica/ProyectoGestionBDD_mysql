@@ -37,6 +37,7 @@ public class verEmpleados extends javax.swing.JFrame {
             botonActualizar.addActionListener(this::mostrarVentanaActualizar);
             botonRegresar = new JButton("Regresar");
             botonRegresar.addActionListener(e -> {
+                dispose(); // Cierra la ventana actual
                 SwingUtilities.invokeLater(() -> {
                     MenuEmp menuGAD = new MenuEmp();
                     menuGAD.setVisible(true);

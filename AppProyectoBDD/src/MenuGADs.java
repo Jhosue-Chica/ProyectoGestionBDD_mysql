@@ -50,26 +50,31 @@ public class MenuGADs extends javax.swing.JFrame {
 
         // Agrega ActionListener a cada botón para manejar eventos
         btnModificar.addActionListener(e -> {
+            frame.dispose(); // Cierra la ventana actual
             VerGAD menu = new VerGAD();
             menu.setVisible(true);
         });
 
         btnAgregar.addActionListener(e -> {
+            frame.dispose(); // Cierra la ventana actual
             VerAgencias menu = new VerAgencias();
             menu.setVisible(true);
         });
 
         btnDescargar.addActionListener(e -> {
+            frame.dispose(); // Cierra la ventana actual
             VistaEmpleados menu = new VistaEmpleados();
             menu.setVisible(true);
         });
         
         btnUbicacion.addActionListener(e -> {
+            frame.dispose(); // Cierra la ventana actual
             InterfazUbicacion menu = new InterfazUbicacion();
             menu.setVisible(true);
         });
 
         btnRegresar.addActionListener(e -> {
+            frame.dispose(); // Cierra la ventana actual
             MenuInterfazGUI menuInterfaz = new MenuInterfazGUI();
             menuInterfaz.initUI();
         });

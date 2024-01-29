@@ -76,6 +76,7 @@ public class VistaEmpleados extends javax.swing.JFrame {
         });
 
         btnRegresar.addActionListener(e -> {
+            dispose(); // Cierra la ventana actual
             MenuGADs menuGAD = new MenuGADs();
             menuGAD.setVisible(true);
         });

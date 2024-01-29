@@ -4,6 +4,8 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
+import com.mysql.cj.jdbc.CallableStatement;
+
 import java.awt.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -18,11 +20,7 @@ import java.util.Date;
 public class InterfazContrato extends javax.swing.JFrame {
 
     // Conectar a la base de datos
-    String url = "jdbc:sqlserver://localhost\\" 
-                + "SQLEXPRESS:1433;"
-                + "databaseName=PROYECTOFINAL;" + "encrypt=true;trustServerCertificate=true;"
-                + "user=sa;"
-                + "password=NosequeponerXD123.;";
+    String url = "jdbc:mysql://10.41.1.128:23306/ProyectoU1?useSSL=false&user=root&password=admin";
 
 
     private JLabel lblSiguienteIdContrato, lblNombreApellido, lblNombreEmpleado;
@@ -479,50 +477,43 @@ public class InterfazContrato extends javax.swing.JFrame {
             int idEmpleado = Integer.parseInt(txtIdEmpleado.getText());
             int idEstadoContrato = Integer.parseInt(cboIdEstadoContrato.getSelectedItem().toString().split(" - ")[0]);
             int idAgencia = Integer.parseInt(cboIdAgencia.getSelectedItem().toString().split(" - ")[0]);
-
+    
             // Convertir las fechas a objetos Date
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             Date fechaInicio = dateFormat.parse(txtFechaInicio.getText());
             Date fechaFin = dateFormat.parse(txtFechaFin.getText());
-
+    
             // Convertir el sueldo a un valor decimal
             double sueldo = Double.parseDouble(txtSueldo.getText());
-
+    
             try (Connection conexion = DriverManager.getConnection(url)) {
-                // Obtener el próximo ID de contrato
-                int nuevoIdContrato = obtenerProximoIdContrato();
-
-                if (nuevoIdContrato == -1) {
-                    // Manejar el error según tus necesidades
-                    JOptionPane.showMessageDialog(this, "Error al obtener el próximo ID de contrato.");
-                    return;
-                }
-
-                // Crear la sentencia SQL para insertar un nuevo contrato
-                String sql = "INSERT INTO CONTRATOS (id_contrato, id_empleado, id_estado_contrato, fecha_inicio, fecha_fin, id_agencia, sueldo) "
-                        + "VALUES (?, ?, ?, ?, ?, ?, ?)";
-
-                try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
+                // Llamar al procedimiento almacenado
+                String sql = "{CALL sp_insertar_contrato(?, ?, ?, ?, ?, ?)}";
+    
+                try (CallableStatement callableStatement = (CallableStatement) conexion.prepareCall(sql)) {
                     // Establecer los valores de los parámetros
-                    preparedStatement.setInt(1, nuevoIdContrato);
-                    preparedStatement.setInt(2, idEmpleado);
-                    preparedStatement.setInt(3, idEstadoContrato);
-                    preparedStatement.setDate(4, new java.sql.Date(fechaInicio.getTime()));
-                    preparedStatement.setDate(5, new java.sql.Date(fechaFin.getTime()));
-                    preparedStatement.setInt(6, idAgencia);
-                    preparedStatement.setDouble(7, sueldo);
-
-                    // Ejecutar la sentencia SQL
-                    preparedStatement.executeUpdate();
-
-                    // Muestra un mensaje indicando que se ha agregado el contrato
-                    JOptionPane.showMessageDialog(this, "Contrato agregado correctamente");
-
-                    // Actualizar el próximo ID de contrato después de agregar
-                    lblSiguienteIdContrato.setText("Siguiente ID de Contrato: " + obtenerProximoIdContrato());
-
-                    // Limpiar los campos después de agregar el contrato
-                    limpiarCamposContrato();
+                    callableStatement.setInt(1, idEmpleado);
+                    callableStatement.setInt(2, idEstadoContrato);
+                    callableStatement.setDate(3, new java.sql.Date(fechaInicio.getTime()));
+                    callableStatement.setDate(4, new java.sql.Date(fechaFin.getTime()));
+                    callableStatement.setInt(5, idAgencia);
+                    callableStatement.setDouble(6, sueldo);
+    
+                    // Ejecutar el procedimiento almacenado
+                    ResultSet resultSet = callableStatement.executeQuery();
+    
+                    // Obtener el nuevo ID de contrato
+                    if (resultSet.next()) {
+                        int nuevoIdContrato = resultSet.getInt("nuevo_id");
+                        // Muestra un mensaje indicando que se ha agregado el contrato con el nuevo ID
+                        JOptionPane.showMessageDialog(this, "Contrato agregado correctamente. Nuevo ID de Contrato: " + nuevoIdContrato);
+    
+                        // Actualizar el próximo ID de contrato después de agregar
+                        lblSiguienteIdContrato.setText("Siguiente ID de Contrato: " + obtenerProximoIdContrato());
+    
+                        // Limpiar los campos después de agregar el contrato
+                        limpiarCamposContrato();
+                    }
                 }
             }
         } catch (SQLException | ParseException | NumberFormatException ex) {
@@ -530,7 +521,7 @@ public class InterfazContrato extends javax.swing.JFrame {
             ex.printStackTrace(); // Puedes manejar las excepciones de manera más específica según tus necesidades.
         }
     }
-
+    
     private int obtenerProximoIdContrato() {
         try (Connection conexion = DriverManager.getConnection(url)) {
             String sql = "SELECT MAX(id_contrato) FROM CONTRATOS";

@@ -1,4 +1,3 @@
-
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
@@ -32,6 +31,7 @@ public class VerGAD extends javax.swing.JFrame {
             botonActualizar.addActionListener(this::mostrarVentanaActualizar);
             botonRegresar = new JButton("Regresar");
             botonRegresar.addActionListener(e -> {
+            dispose(); // Cierra la ventana actual
             SwingUtilities.invokeLater(() -> {
                 MenuGADs menuGAD = new MenuGADs();
                 menuGAD.setVisible(true);
@@ -266,19 +266,18 @@ class VentanaActualizarGAD extends JFrame {
         try {
             // Establecer la conexión a la base de datos
             try (Connection conexion = Conexion.obtenerConexion()) {
-                // Preparar la consulta SQL de actualización
-                String consulta = "UPDATE GAD SET nombre = ?, id_tipo = ?, id_ubicacion = ?, fecha_creacion = ? WHERE id_gad = ?";
-                try (PreparedStatement preparedStatement = conexion.prepareStatement(consulta)) {
-                    // Establecer los parámetros de la consulta
-                    preparedStatement.setString(1, campoNombre.getText());
-                    preparedStatement.setInt(2, Integer.parseInt(campoIdTipo.getText()));
-                    preparedStatement.setInt(3, Integer.parseInt(campoIdUbicacion.getText()));
-                    preparedStatement.setDate(4, Date.valueOf(campoFechaCreacion.getText()));
-                    preparedStatement.setInt(5, gad.getIdGAD());
-
-                    // Ejecutar la consulta de actualización
-                    int filasActualizadas = preparedStatement.executeUpdate();
-
+                // Llamada al procedimiento almacenado
+                try (CallableStatement callableStatement = conexion.prepareCall("{call sp_actualizar_gad(?, ?, ?, ?, ?)}")) {
+                    // Establecer los parámetros del procedimiento almacenado
+                    callableStatement.setString(1, campoNombre.getText());
+                    callableStatement.setInt(2, Integer.parseInt(campoIdTipo.getText()));
+                    callableStatement.setInt(3, Integer.parseInt(campoIdUbicacion.getText()));
+                    callableStatement.setDate(4, Date.valueOf(campoFechaCreacion.getText()));
+                    callableStatement.setInt(5, gad.getIdGAD());
+    
+                    // Ejecutar el procedimiento almacenado
+                    int filasActualizadas = callableStatement.executeUpdate();
+    
                     if (filasActualizadas > 0) {
                         JOptionPane.showMessageDialog(this, "Cambios guardados correctamente");
                         // Actualizar la tabla en la ventana principal
@@ -293,6 +292,7 @@ class VentanaActualizarGAD extends JFrame {
             e.printStackTrace();
         }
     }
+    
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents

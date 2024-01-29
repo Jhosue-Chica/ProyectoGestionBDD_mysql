@@ -4,6 +4,9 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
+
+import com.mysql.cj.jdbc.CallableStatement;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.Connection;
@@ -249,9 +252,9 @@ public class InterfazEmpleado extends javax.swing.JFrame {
     }
 
     // Conectar a la base de datos
-    String url = "jdbc:sqlserver://DESKTOP-GSCMPF5\\MSSQLSERVER_DEV;database=PROYECTO FINAL";
-    String usuario = "sa";
-    String contrasena = "270902";
+    String url = "jdbc:mysql://10.41.1.128:23306/ProyectoU1";
+    String usuario = "root";
+    String contrasena = "admin";
 
     private void agregarEmpleado() {
 
@@ -276,21 +279,18 @@ public class InterfazEmpleado extends javax.swing.JFrame {
                     return;
                 }
 
-                // Crear la sentencia SQL para insertar un nuevo empleado
-                String sql = "INSERT INTO EMPLEADO (id_empleado, nombre, apellidos, direccion, telefono, fecha_nacimiento) "
-                        + "VALUES (?, ?, ?, ?, ?, ?)";
 
-                try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
-                    // Establecer los valores de los parámetros
-                    preparedStatement.setInt(1, nuevoIdEmpleado);
-                    preparedStatement.setString(2, nombre);
-                    preparedStatement.setString(3, apellidos);
-                    preparedStatement.setString(4, direccion);
-                    preparedStatement.setString(5, telefono);
-                    preparedStatement.setDate(6, new java.sql.Date(fechaNacimiento.getTime()));
-
-                    // Ejecutar la sentencia SQL
-                    preparedStatement.executeUpdate();
+                    try (CallableStatement callableStatement = (CallableStatement) conexion.prepareCall("{call sp_insertar_empleado(?, ?, ?, ?, ?, ?)}")) {
+                        // Establecer los valores de los parámetros
+                        callableStatement.setInt(1, nuevoIdEmpleado);
+                        callableStatement.setString(2, nombre);
+                        callableStatement.setString(3, apellidos);
+                        callableStatement.setString(4, direccion);
+                        callableStatement.setString(5, telefono);
+                        callableStatement.setDate(6, new java.sql.Date(fechaNacimiento.getTime()));
+                        
+                        // Ejecutar el procedimiento almacenado
+                        callableStatement.execute();
 
                     // Muestra un mensaje indicando que se ha agregado el empleado
                     JOptionPane.showMessageDialog(this, "Empleado agregado correctamente");

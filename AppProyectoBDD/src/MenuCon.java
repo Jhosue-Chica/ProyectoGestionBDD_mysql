@@ -62,10 +62,12 @@ public class MenuCon extends javax.swing.JFrame {
         });
 
         btnRegresar.addActionListener(e -> {
+            frame.dispose(); // Cierra la ventana actual
             MenuInterfazGUI menuInterfaz = new MenuInterfazGUI();
             menuInterfaz.initUI();
+            
         });
-
+        
         // Agrega botones al panel con GridBagLayout
         buttonPanel.add(btnModificar, gbc);
         gbc.gridy++;
