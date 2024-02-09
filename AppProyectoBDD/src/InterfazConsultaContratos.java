@@ -156,35 +156,44 @@ public class InterfazConsultaContratos extends javax.swing.JFrame {
     }
 
     private void actualizarEstadoContratoEnBD(int idContrato, int nuevoEstado) {
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
         try (Connection conexion = Conexion.obtenerConexion()) {
-            // Verificar si el nuevo estado existe en la tabla ESTADO_CONTRATO
-            if (estadoContratoExiste(nuevoEstado, conexion)) {
-                System.out.println("Existe Estado Contrato: " + estadoContratoExiste(nuevoEstado, conexion));
-
-                String sql = "UPDATE CONTRATOS SET id_estado_contrato = ? WHERE id_contrato = ?";
-                try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
-                    preparedStatement.setInt(1, nuevoEstado);
-                    preparedStatement.setInt(2, idContrato);
-
-                    int filasActualizadas = preparedStatement.executeUpdate();
-
-                    if (filasActualizadas > 0) {
-                        System.out.println("Estado del contrato actualizado correctamente.");
-                    } else {
-                        System.out.println("No se pudo actualizar el estado del contrato.");
+            // Llamada al procedimiento almacenado sp_ActualizarEstadoContrato
+            try (CallableStatement callableStatement = conexion.prepareCall("{call sp_ActualizarEstadoContrato(?, ?, ?)}")) {
+                callableStatement.setInt(1, idContrato);
+                callableStatement.setInt(2, nuevoEstado);
+                callableStatement.setString(3, ObtenerIP.obtenerIPPublica());
+    
+                boolean resultado = callableStatement.execute();
+    
+                if (resultado) {
+                    try (ResultSet resultSet = callableStatement.getResultSet()) {
+                        if (resultSet.next()) {
+                            int filasActualizadas = resultSet.getInt("filasActualizadas");
+                            String mensaje = resultSet.getString("mensaje");
+    
+                            if (filasActualizadas > 0) {
+                                System.out.println("Estado del contrato actualizado correctamente. " + mensaje);
+                            } else {
+                                System.out.println("No se pudo actualizar el estado del contrato. " + mensaje);
+                            }
+                        }
                     }
+                } else {
+                    System.out.println("La llamada al procedimiento no devolvió un resultado.");
                 }
-            } else {
-                System.out.println("El nuevo estado de contrato no existe.");
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
+            String descripcionError = ex.getMessage();
+            manejador.guardarError(descripcionError);
         }
     }
+    
 
-    // Método para verificar si un estado de contrato existe en la tabla ESTADO_CONTRATO
+    // Método para verificar si un estado de contrato existe en la vista vw_EstadoContratoExiste
     private boolean estadoContratoExiste(int idEstadoContrato, Connection conexion) throws SQLException {
-        String sql = "SELECT 1 FROM ESTADO_CONTRATO WHERE id_estado_contrato = ?";
+        String sql = "SELECT id_estado_contrato FROM vw_EstadoContratoExiste WHERE id_estado_contrato = ?";
         try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
             preparedStatement.setInt(1, idEstadoContrato);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -193,29 +202,32 @@ public class InterfazConsultaContratos extends javax.swing.JFrame {
         }
     }
 
+
     private void consultarContratos() {
         // Lógica para consultar todos los detalles de los contratos según el estado seleccionado
         tableModel.setColumnCount(0);
         tableModel.setRowCount(0);
-
+    
         String estadoSeleccionado = cboEstadoContrato.getSelectedItem().toString();
         int idEstadoContrato = (estadoSeleccionado.equals("Activo")) ? 1 : 2;
         System.out.println("ID Estado Contrato: " + idEstadoContrato);
 
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
+    
         try (Connection conexion = Conexion.obtenerConexion()) {
-            String sql = "SELECT * FROM CONTRATOS WHERE id_estado_contrato = ?";
+            String vistaContratos = (idEstadoContrato == 1) ? "ContratosActivos" : "ContratosInactivos";
+            String sql = "SELECT * FROM " + vistaContratos;
+    
             try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
-                preparedStatement.setInt(1, idEstadoContrato);
-
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     ResultSetMetaData metaData = resultSet.getMetaData();
                     int columnCount = metaData.getColumnCount();
-
+    
                     // Agregar columnas al modelo de la tabla
                     for (int i = 1; i <= columnCount; i++) {
                         tableModel.addColumn(metaData.getColumnName(i));
                     }
-
+    
                     // Ajustar el ancho de las columnas
                     for (int i = 0; i < tblContratos.getColumnCount(); i++) {
                         TableColumn column = tblContratos.getColumnModel().getColumn(i);
@@ -227,7 +239,7 @@ public class InterfazConsultaContratos extends javax.swing.JFrame {
                             column.setPreferredWidth(120);  // Ajusta el tamaño según tus necesidades
                         }
                     }
-
+    
                     // Agregar filas al modelo de la tabla
                     while (resultSet.next()) {
                         Object[] rowData = new Object[columnCount];
@@ -238,25 +250,30 @@ public class InterfazConsultaContratos extends javax.swing.JFrame {
                     }
                 }
             }
-
+    
             // Mostrar detalles del empleado cuando se selecciona un contrato
             tblContratos.getSelectionModel().addListSelectionListener(e -> mostrarDetallesEmpleado());
         } catch (SQLException ex) {
             ex.printStackTrace();
+            String descripcionError = ex.getMessage();
+            manejador.guardarError(descripcionError);
         }
     }
+    
 
     private void mostrarDetallesEmpleado() {
         int selectedRow = tblContratos.getSelectedRow();
-
+    
         if (selectedRow != -1) {
             int idEmpleado = (int) tblContratos.getValueAt(selectedRow, 1);
-
-                try (Connection conexion = Conexion.obtenerConexion()) {
-                String sql = "SELECT * FROM EMPLEADO WHERE id_empleado = ?";
+            
+            ManejadorErroresBD manejador = new ManejadorErroresBD();
+    
+            try (Connection conexion = Conexion.obtenerConexion()) {
+                String sql = "SELECT * FROM vw_DetallesEmpleado WHERE id_empleado = ?";
                 try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
                     preparedStatement.setInt(1, idEmpleado);
-
+    
                     try (ResultSet resultSet = preparedStatement.executeQuery()) {
                         if (resultSet.next()) {
                             int id = resultSet.getInt("id_empleado");
@@ -276,6 +293,8 @@ public class InterfazConsultaContratos extends javax.swing.JFrame {
                 }
             } catch (SQLException ex) {
                 ex.printStackTrace();
+                String descripcionError = ex.getMessage();
+                manejador.guardarError(descripcionError);
             }
         }
     }

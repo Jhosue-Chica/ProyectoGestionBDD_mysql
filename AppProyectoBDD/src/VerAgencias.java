@@ -29,6 +29,7 @@ public class VerAgencias extends javax.swing.JFrame {
             botonRegresar = new JButton("Regresar");
             botonRegresar.addActionListener(e -> {
             SwingUtilities.invokeLater(() -> {
+                dispose(); // Cierra la ventana actual
                 MenuGADs menuGAD = new MenuGADs();
                 menuGAD.setVisible(true);
             });
@@ -245,34 +246,42 @@ class VentanaActualizarAgencia extends JFrame {
 
     private void guardarCambios() {
         try {
-            String url = "jdbc:sqlserver://DESKTOP-GSCMPF5\\MSSQLSERVER_DEV;database=PROYECTO FINAL";
-            String usuario = "sa";
-            String contrasena = "270902";
-
-            try (Connection conexion = DriverManager.getConnection(url, usuario, contrasena)) {
-                String consulta = "UPDATE AGENCIAS SET nombre = ?, id_gad = ?, fecha_creacion = ?, telefono = ? WHERE id_agencia = ?";
-                try (PreparedStatement preparedStatement = conexion.prepareStatement(consulta)) {
-                    preparedStatement.setString(1, campoNombre.getText());
-                    preparedStatement.setInt(2, Integer.parseInt(campoIdGAD.getText()));
-                    preparedStatement.setDate(3, Date.valueOf(campoFechaCreacion.getText()));
-                    preparedStatement.setString(4, campoTelefono.getText());
-                    preparedStatement.setInt(5, agencia.getIdAgencia());
-
-                    int filasActualizadas = preparedStatement.executeUpdate();
-
+            ManejadorErroresBD manejador = new ManejadorErroresBD();
+            try (Connection conexion = Conexion.obtenerConexion()) {
+                // Llamada al procedimiento almacenado
+                try (CallableStatement callableStatement = conexion.prepareCall("{call sp_actualizar_agencia(?, ?, ?, ?, ?, ?)}")) {
+                    callableStatement.setString(1, campoNombre.getText());
+                    callableStatement.setInt(2, Integer.parseInt(campoIdGAD.getText()));
+                    callableStatement.setDate(3, Date.valueOf(campoFechaCreacion.getText()));
+                    callableStatement.setString(4, campoTelefono.getText());
+                    callableStatement.setInt(5, agencia.getIdAgencia());
+                    callableStatement.setString(6, ObtenerIP.obtenerIPPublica());
+                    
+                    
+                    
+            
+                    int filasActualizadas = callableStatement.executeUpdate();
+            
                     if (filasActualizadas > 0) {
+                        JOptionPane.showMessageDialog(this, "No se pudo guardar los cambios. Inténtalo nuevamente.");
+                    } else {
+                        
                         JOptionPane.showMessageDialog(this, "Cambios guardados correctamente");
                         ventanaPrincipal.actualizarTabla();
                         dispose();
-                    } else {
-                        JOptionPane.showMessageDialog(this, "No se pudo guardar los cambios. Inténtalo nuevamente.");
                     }
                 }
+            } catch (SQLException | NumberFormatException ex) {
+                ex.printStackTrace();
+                String descripcionError = ex.getMessage();
+                manejador.guardarError(descripcionError);
             }
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
     }    
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {

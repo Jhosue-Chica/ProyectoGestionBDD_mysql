@@ -19,6 +19,7 @@ public class VistaEmpleados extends javax.swing.JFrame {
     private JButton btnContratos, btnGadUbicacion, btnEmpleadosActivos, btnAgenciasContacto, btnRegresar;
 
     public VistaEmpleados() {
+        
         super("Interfaz de Base de Datos");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
@@ -76,12 +77,13 @@ public class VistaEmpleados extends javax.swing.JFrame {
         });
 
         btnRegresar.addActionListener(e -> {
+            dispose(); // Cierra la ventana actual
             MenuGADs menuGAD = new MenuGADs();
             menuGAD.setVisible(true);
         });
         // Conectar a la base de datos y crear vistas si no existen
         connectToDatabase();
-        createViews();
+        
     }
 
     private void connectToDatabase() {
@@ -94,6 +96,7 @@ public class VistaEmpleados extends javax.swing.JFrame {
     }
 
     private void createViews() {
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
         try (Statement statement = connection.createStatement()) {
             // Verificar la existencia de la vista antes de intentar crearla
             if (!viewExists("vw_detalle_contrato")) {
@@ -135,6 +138,8 @@ public class VistaEmpleados extends javax.swing.JFrame {
         } catch (SQLException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error al crear vistas: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            String descripcionError = e.getMessage();
+            manejador.guardarError(descripcionError);
         }
     }
 
@@ -145,6 +150,7 @@ public class VistaEmpleados extends javax.swing.JFrame {
     }
 
     private void showData(String query) {
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
         try (Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(query)) {
 
             // Limpiar la tabla antes de mostrar nuevos datos
@@ -170,6 +176,8 @@ public class VistaEmpleados extends javax.swing.JFrame {
         } catch (SQLException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error al ejecutar la consulta", "Error", JOptionPane.ERROR_MESSAGE);
+            String descripcionError = e.getMessage();
+            manejador.guardarError(descripcionError);
         }
     }
 

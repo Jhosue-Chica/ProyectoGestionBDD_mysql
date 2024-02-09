@@ -4,6 +4,9 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
+
+import com.mysql.cj.jdbc.CallableStatement;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.Connection;
@@ -248,12 +251,10 @@ public class InterfazEmpleado extends javax.swing.JFrame {
         });
     }
 
-    // Conectar a la base de datos
-    String url = "jdbc:sqlserver://DESKTOP-GSCMPF5\\MSSQLSERVER_DEV;database=PROYECTO FINAL";
-    String usuario = "sa";
-    String contrasena = "270902";
 
     private void agregarEmpleado() {
+
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
 
         try {
             // Obtener datos de los campos de texto
@@ -266,7 +267,7 @@ public class InterfazEmpleado extends javax.swing.JFrame {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             Date fechaNacimiento = dateFormat.parse(txtFechaNacimiento.getText());
 
-            try (Connection conexion = DriverManager.getConnection(url, usuario, contrasena)) {
+            try (Connection conexion = Conexion.obtenerConexion()) {
                 // Obtener el próximo ID de empleado
                 int nuevoIdEmpleado = obtenerProximoIdEmpleado();
 
@@ -276,21 +277,19 @@ public class InterfazEmpleado extends javax.swing.JFrame {
                     return;
                 }
 
-                // Crear la sentencia SQL para insertar un nuevo empleado
-                String sql = "INSERT INTO EMPLEADO (id_empleado, nombre, apellidos, direccion, telefono, fecha_nacimiento) "
-                        + "VALUES (?, ?, ?, ?, ?, ?)";
 
-                try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
-                    // Establecer los valores de los parámetros
-                    preparedStatement.setInt(1, nuevoIdEmpleado);
-                    preparedStatement.setString(2, nombre);
-                    preparedStatement.setString(3, apellidos);
-                    preparedStatement.setString(4, direccion);
-                    preparedStatement.setString(5, telefono);
-                    preparedStatement.setDate(6, new java.sql.Date(fechaNacimiento.getTime()));
-
-                    // Ejecutar la sentencia SQL
-                    preparedStatement.executeUpdate();
+                    try (CallableStatement callableStatement = (CallableStatement) conexion.prepareCall("{call sp_insertar_empleado(?, ?, ?, ?, ?, ?, ?)}")) {
+                        // Establecer los valores de los parámetros
+                        callableStatement.setInt(1, nuevoIdEmpleado);
+                        callableStatement.setString(2, nombre);
+                        callableStatement.setString(3, apellidos);
+                        callableStatement.setString(4, direccion);
+                        callableStatement.setString(5, telefono);
+                        callableStatement.setDate(6, new java.sql.Date(fechaNacimiento.getTime()));
+                        callableStatement.setString(7, ObtenerIP.obtenerIPPublica()); // Ejemplo de dirección IP
+                        
+                        // Ejecutar el procedimiento almacenado
+                        callableStatement.execute();
 
                     // Muestra un mensaje indicando que se ha agregado el empleado
                     JOptionPane.showMessageDialog(this, "Empleado agregado correctamente");
@@ -302,12 +301,16 @@ public class InterfazEmpleado extends javax.swing.JFrame {
         } catch (SQLException | ParseException | NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Error al agregar empleado. Verifica los datos ingresados.");
             ex.printStackTrace(); // Puedes manejar las excepciones de manera más específica según tus necesidades.
+            String descripcionError = ex.getMessage();
+            manejador.guardarError(descripcionError);
         }
     }
 
     private int obtenerProximoIdEmpleado() {
 
-        try (Connection conexion = DriverManager.getConnection(url, usuario, contrasena)) {
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
+
+        try (Connection conexion = Conexion.obtenerConexion()) {
             String sql = "SELECT MAX(id_empleado) FROM EMPLEADO";
             try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -320,7 +323,10 @@ public class InterfazEmpleado extends javax.swing.JFrame {
             }
         } catch (SQLException ex) {
             ex.printStackTrace(); // Manejar la excepción según tus necesidades
+            String descripcionError = ex.getMessage();
+            manejador.guardarError(descripcionError);
             return -1; // o lanzar una excepción personalizada
+
         }
     }
 

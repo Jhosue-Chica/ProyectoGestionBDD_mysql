@@ -52,6 +52,7 @@ public class MenuEmp extends javax.swing.JFrame {
 
         // Agrega ActionListener a cada botón para manejar eventos
         btnModificar.addActionListener(e -> {
+            frame.dispose(); // Cierra la ventana actual
             verEmpleados menu = new verEmpleados();
             menu.setVisible(true);
         });
@@ -62,6 +63,7 @@ public class MenuEmp extends javax.swing.JFrame {
         });
 
         btnRegresar.addActionListener(e -> {
+            frame.dispose(); // Cierra la ventana actual
             MenuInterfazGUI menuInterfaz = new MenuInterfazGUI();
             menuInterfaz.initUI();
         });

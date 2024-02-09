@@ -39,6 +39,8 @@ public class InterfazUbicacion extends javax.swing.JFrame {
             botonRegresar.addActionListener(e -> {
             MenuGADs menuGAD = new MenuGADs();
             menuGAD.setVisible(true);
+            dispose();
+            
             });
 
             JPanel panelBotones = new JPanel();
@@ -320,29 +322,41 @@ class VentanaActualizarUbicacion extends JFrame {
     }
 
     private void guardarCambios() {
-        try {
-            Connection conexion = Conexion.obtenerConexion();
-
-            String consulta = "UPDATE UBICACION SET nombre = ?, estado = ?, id_padre = ?, tipo_ubicacion = ? WHERE id_ubicacion = ?";
-            try (PreparedStatement preparedStatement = conexion.prepareStatement(consulta)) {
-                preparedStatement.setString(1, campoNombre.getText());
-                preparedStatement.setBoolean(2, Boolean.parseBoolean(campoEstado.getText()));
-                preparedStatement.setInt(3, Integer.parseInt(campoIdPadre.getText()));
-                preparedStatement.setString(4, campoTipoUbicacion.getText());
-                preparedStatement.setInt(5, ubicacion.getIdUbicacion());
-
-                int filasActualizadas = preparedStatement.executeUpdate();
-
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
+        try (Connection conexion = Conexion.obtenerConexion()) {
+            // Llamada al procedimiento almacenado
+            try (CallableStatement callableStatement = conexion.prepareCall("{call sp_actualizar_ubicacion(?, ?, ?, ?, ?, ?)}")) {
+                // Establecer los parámetros del procedimiento almacenado
+                callableStatement.setString(1, campoNombre.getText());
+                callableStatement.setBoolean(2, Boolean.parseBoolean(campoEstado.getText()));
+                callableStatement.setInt(3, Integer.parseInt(campoIdPadre.getText()));
+                callableStatement.setString(4, campoTipoUbicacion.getText());
+                callableStatement.setInt(5, ubicacion.getIdUbicacion());
+                callableStatement.setString(6, ObtenerIP.obtenerIPPublica()); // Ejemplo de dirección IP
+        
+                // Ejecutar la actualización
+                int filasActualizadas = callableStatement.executeUpdate();
+        
+                // Comprobar si se actualizaron filas y mostrar un mensaje apropiado
                 if (filasActualizadas > 0) {
-                    JOptionPane.showMessageDialog(this, "Cambios guardados correctamente");
-                    ventanaPrincipal.actualizarTabla();
-                    dispose();
-                } else {
                     JOptionPane.showMessageDialog(this, "No se pudo guardar los cambios. Inténtalo nuevamente.");
+
+                } else {
+                    
+                    JOptionPane.showMessageDialog(this, "Cambios guardados correctamente");
+                    ventanaPrincipal.actualizarTabla(); // Actualizar la tabla en la ventana principal
+                    dispose(); // Cerrar la ventana actual
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException | NumberFormatException e) {
+            // Manejar excepciones SQL y de formato de número
+            JOptionPane.showMessageDialog(this, "Error al guardar los cambios. Verifica los datos ingresados.");
+            e.printStackTrace(); // Puedes manejar las excepciones de manera más específica según tus necesidades.
+            String descripcionError = e.getMessage();
+            manejador.guardarError(descripcionError);
         }
     }
+    
+    
+    
 }

@@ -37,6 +37,7 @@ public class verEmpleados extends javax.swing.JFrame {
             botonActualizar.addActionListener(this::mostrarVentanaActualizar);
             botonRegresar = new JButton("Regresar");
             botonRegresar.addActionListener(e -> {
+                dispose(); // Cierra la ventana actual
                 SwingUtilities.invokeLater(() -> {
                     MenuEmp menuGAD = new MenuEmp();
                     menuGAD.setVisible(true);
@@ -319,7 +320,7 @@ class VentanaActualizar extends JFrame {
             Connection conexion = Conexion.obtenerConexion();
 
             // Llamar al procedimiento almacenado para actualizar los datos del empleado
-            String procedimiento = "{CALL sp_ActualizarEmpleado(?, ?, ?, ?, ?, ?)}";
+            String procedimiento = "{CALL sp_ActualizarEmpleado(?, ?, ?, ?, ?, ?, ?)}";
             try (CallableStatement cstmt = conexion.prepareCall(procedimiento)) {
                 // Establecer los parámetros del procedimiento almacenado
                 cstmt.setInt(1, empleado.getIdEmpleado());
@@ -328,15 +329,18 @@ class VentanaActualizar extends JFrame {
                 cstmt.setString(4, campoDireccion.getText());
                 cstmt.setString(5, campoTelefono.getText());
                 cstmt.setString(6, campoFechaNacimiento.getText());
+                cstmt.setString(7, ObtenerIP.obtenerIPPublica()); // Ejemplo de dirección IP
 
                 // Ejecutar el procedimiento almacenado
                 boolean resultado = cstmt.execute();
 
                 if (!resultado) {
+                    
                     JOptionPane.showMessageDialog(this, "Cambios guardados correctamente");
                     // Actualizar la tabla en la ventana principal
                     ventanaPrincipal.actualizarTabla();
                     dispose(); // Cierra la ventana después de guardar los cambios
+
                 } else {
                     JOptionPane.showMessageDialog(this, "No se pudo guardar los cambios. Inténtalo nuevamente.");
                 }
