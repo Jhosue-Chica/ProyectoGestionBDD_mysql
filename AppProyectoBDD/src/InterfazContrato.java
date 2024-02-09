@@ -417,6 +417,7 @@ public class InterfazContrato extends javax.swing.JFrame {
     private void buscarEmpleado() {
         // Lógica para buscar y mostrar el nombre y apellido del empleado
         // Utiliza el lblNombreEmpleado para mostrar la información
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
         try {
             Connection conexion = Conexion.obtenerConexion();
 
@@ -438,6 +439,8 @@ public class InterfazContrato extends javax.swing.JFrame {
             }
         } catch (SQLException ex) {
             ex.printStackTrace(); // Manejar la excepción según tus necesidades
+            String descripcionError = ex.getMessage();
+            manejador.guardarError(descripcionError);
         }
     }
 
@@ -452,6 +455,8 @@ public class InterfazContrato extends javax.swing.JFrame {
         // Lógica para obtener las opciones de la tabla AGENCIA
         // y mostrarlas en el JComboBox cboIdAgencia
         // Puedes utilizar consultas SQL y la conexión a la base de datos
+
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
         try {
             Connection conexion = Conexion.obtenerConexion();
 
@@ -467,10 +472,13 @@ public class InterfazContrato extends javax.swing.JFrame {
             }
         } catch (SQLException ex) {
             ex.printStackTrace(); // Manejar la excepción según tus necesidades
+            String descripcionError = ex.getMessage();
+            manejador.guardarError(descripcionError);
         }
     }
 
     private void agregarContrato() {
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
         try {
             // Obtener datos de los campos de texto y ComboBox
             int idEmpleado = Integer.parseInt(txtIdEmpleado.getText());
@@ -517,11 +525,16 @@ public class InterfazContrato extends javax.swing.JFrame {
         } catch (SQLException | ParseException | NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Error al agregar contrato. Verifica los datos ingresados.");
             ex.printStackTrace(); // Puedes manejar las excepciones de manera más específica según tus necesidades.
+            String descripcionError = ex.getMessage();
+            manejador.guardarError(descripcionError);
         }
     }
     
     
     private int obtenerProximoIdContrato() {
+        
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
+
         try (Connection conexion = Conexion.obtenerConexion()) {
             String sql = "SELECT MAX(id_contrato) FROM CONTRATOS";
             try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
@@ -535,6 +548,10 @@ public class InterfazContrato extends javax.swing.JFrame {
             }
         } catch (SQLException ex) {
             ex.printStackTrace(); // Manejar la excepción según tus necesidades
+
+            String descripcionError = ex.getMessage();
+            manejador.guardarError(descripcionError);
+
             return -1; // o lanzar una excepción personalizada
         }
     }
@@ -552,7 +569,11 @@ public class InterfazContrato extends javax.swing.JFrame {
     }
 
     private int obtenerSiguienteIdContrato() {
+
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
+
         try (Connection conexion = Conexion.obtenerConexion()) {
+            
             String sql = "SELECT MAX(id_contrato) FROM CONTRATOS";
             try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -565,6 +586,9 @@ public class InterfazContrato extends javax.swing.JFrame {
             }
         } catch (SQLException ex) {
             ex.printStackTrace(); // Manejar la excepción según tus necesidades
+            String descripcionError = ex.getMessage();
+            manejador.guardarError(descripcionError);
+
             return -1; // o lanzar una excepción personalizada
         }
     }

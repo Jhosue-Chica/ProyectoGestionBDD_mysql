@@ -246,6 +246,7 @@ class VentanaActualizarAgencia extends JFrame {
 
     private void guardarCambios() {
         try {
+            ManejadorErroresBD manejador = new ManejadorErroresBD();
             try (Connection conexion = Conexion.obtenerConexion()) {
                 // Llamada al procedimiento almacenado
                 try (CallableStatement callableStatement = conexion.prepareCall("{call sp_actualizar_agencia(?, ?, ?, ?, ?, ?)}")) {
@@ -272,6 +273,8 @@ class VentanaActualizarAgencia extends JFrame {
                 }
             } catch (SQLException | NumberFormatException ex) {
                 ex.printStackTrace();
+                String descripcionError = ex.getMessage();
+                manejador.guardarError(descripcionError);
             }
             
         } catch (Exception e) {

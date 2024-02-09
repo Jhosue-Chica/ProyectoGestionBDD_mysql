@@ -156,6 +156,7 @@ public class InterfazConsultaContratos extends javax.swing.JFrame {
     }
 
     private void actualizarEstadoContratoEnBD(int idContrato, int nuevoEstado) {
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
         try (Connection conexion = Conexion.obtenerConexion()) {
             // Llamada al procedimiento almacenado sp_ActualizarEstadoContrato
             try (CallableStatement callableStatement = conexion.prepareCall("{call sp_ActualizarEstadoContrato(?, ?, ?)}")) {
@@ -184,6 +185,8 @@ public class InterfazConsultaContratos extends javax.swing.JFrame {
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
+            String descripcionError = ex.getMessage();
+            manejador.guardarError(descripcionError);
         }
     }
     
@@ -208,6 +211,8 @@ public class InterfazConsultaContratos extends javax.swing.JFrame {
         String estadoSeleccionado = cboEstadoContrato.getSelectedItem().toString();
         int idEstadoContrato = (estadoSeleccionado.equals("Activo")) ? 1 : 2;
         System.out.println("ID Estado Contrato: " + idEstadoContrato);
+
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
     
         try (Connection conexion = Conexion.obtenerConexion()) {
             String vistaContratos = (idEstadoContrato == 1) ? "ContratosActivos" : "ContratosInactivos";
@@ -250,6 +255,8 @@ public class InterfazConsultaContratos extends javax.swing.JFrame {
             tblContratos.getSelectionModel().addListSelectionListener(e -> mostrarDetallesEmpleado());
         } catch (SQLException ex) {
             ex.printStackTrace();
+            String descripcionError = ex.getMessage();
+            manejador.guardarError(descripcionError);
         }
     }
     
@@ -259,6 +266,8 @@ public class InterfazConsultaContratos extends javax.swing.JFrame {
     
         if (selectedRow != -1) {
             int idEmpleado = (int) tblContratos.getValueAt(selectedRow, 1);
+            
+            ManejadorErroresBD manejador = new ManejadorErroresBD();
     
             try (Connection conexion = Conexion.obtenerConexion()) {
                 String sql = "SELECT * FROM vw_DetallesEmpleado WHERE id_empleado = ?";
@@ -284,6 +293,8 @@ public class InterfazConsultaContratos extends javax.swing.JFrame {
                 }
             } catch (SQLException ex) {
                 ex.printStackTrace();
+                String descripcionError = ex.getMessage();
+                manejador.guardarError(descripcionError);
             }
         }
     }

@@ -1,4 +1,3 @@
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -12,14 +11,48 @@ public class MenuInterfazGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         centerFrameOnScreen(frame);
 
+        // Crear un panel principal para la interfaz
+        JPanel mainPanel = new JPanel(new BorderLayout());
+
         // Crear un panel para los botones
         JPanel buttonPanel = createButtonPanel();
+
+        // Crear una lista desplegable para los usuarios
+        String[] usuarios = {"Usuario DBA", "Funcionario", "Reportes"}; // usuarios
+        JComboBox<String> usuariosComboBox = new JComboBox<>(usuarios);
+        usuariosComboBox.setPreferredSize(new Dimension(10, 50)); // Establece el tamaño preferido
+        usuariosComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String usuarioSeleccionado = (String) usuariosComboBox.getSelectedItem();
+                // Determinar qué función de conexión llamar dependiendo del usuario seleccionado
+                switch (usuarioSeleccionado) {
+                    case "Usuario DBA":
+                        Conexion conexionDBA = new Conexion(1);
+                       
+                        break;
+                    case "Funcionario":
+                        Conexion conexionFuncionario = new Conexion(2);
+                       
+                        break;
+                    case "Reportes":
+                        Conexion conexionReportes = new Conexion(3);
+                        
+                        break;
+                }
+            }
+        });
+        // Agregar el panel de botones y la lista desplegable al panel principal
+        mainPanel.add(buttonPanel, BorderLayout.CENTER);
+        mainPanel.add(usuariosComboBox, BorderLayout.AFTER_LAST_LINE);
+
+
 
         // Establecer una imagen de fondo
         ImageIcon backgroundImage = new ImageIcon("ruta/imagen.jpg");
         JLabel backgroundLabel = new JLabel(backgroundImage);
         backgroundLabel.setLayout(new BorderLayout());
-        backgroundLabel.add(buttonPanel, BorderLayout.CENTER);
+        backgroundLabel.add(mainPanel, BorderLayout.CENTER);
 
         frame.setContentPane(backgroundLabel);
 
@@ -82,7 +115,7 @@ public class MenuInterfazGUI {
         buttonConstraints.gridy = 4;
         buttonPanel.add(salirButton, buttonConstraints);
 
-// ActionListener para el botón "Gestionar Trabajadores"
+        // ActionListener para el botón "Gestionar Trabajadores"
         button1.addActionListener(e -> {
             // Crear una instancia de MenuEmpleados y mostrarla
             SwingUtilities.invokeLater(() -> {
@@ -93,8 +126,7 @@ public class MenuInterfazGUI {
             });
         });
 
-
-// ActionListener para el botón "Gestionar GADs"
+        // ActionListener para el botón "Gestionar GADs"
         button2.addActionListener(e -> {
             // Crear una instancia de MenuGAD y mostrarla
             SwingUtilities.invokeLater(() -> {
@@ -106,7 +138,8 @@ public class MenuInterfazGUI {
             SwingUtilities.getWindowAncestor(button2).dispose();
         });
 
-                button3.addActionListener(e -> {
+        // ActionListener para el botón "Gestionar Contratos"
+        button3.addActionListener(e -> {
             // Crear una instancia de MenuGAD y mostrarla
             SwingUtilities.invokeLater(() -> {
                 MenuCon menuGAD = new MenuCon();
@@ -116,11 +149,11 @@ public class MenuInterfazGUI {
             // Cerrar el JFrame actual al hacer clic en el botón
             SwingUtilities.getWindowAncestor(button3).dispose();
         });
+
         // ActionListener para el botón "Salir"
         salirButton.addActionListener(e -> {
             // Cerrar el JFrame actual al hacer clic en el botón
-                    System.exit(0); // Detiene la ejecución del programa con estado de terminación exitoso (0)
-
+            System.exit(0); // Detiene la ejecución del programa con estado de terminación exitoso (0)
         });
 
         return buttonPanel;

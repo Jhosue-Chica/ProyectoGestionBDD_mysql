@@ -254,6 +254,8 @@ public class InterfazEmpleado extends javax.swing.JFrame {
 
     private void agregarEmpleado() {
 
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
+
         try {
             // Obtener datos de los campos de texto
             String nombre = txtNombre.getText();
@@ -299,10 +301,14 @@ public class InterfazEmpleado extends javax.swing.JFrame {
         } catch (SQLException | ParseException | NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Error al agregar empleado. Verifica los datos ingresados.");
             ex.printStackTrace(); // Puedes manejar las excepciones de manera más específica según tus necesidades.
+            String descripcionError = ex.getMessage();
+            manejador.guardarError(descripcionError);
         }
     }
 
     private int obtenerProximoIdEmpleado() {
+
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
 
         try (Connection conexion = Conexion.obtenerConexion()) {
             String sql = "SELECT MAX(id_empleado) FROM EMPLEADO";
@@ -317,7 +323,10 @@ public class InterfazEmpleado extends javax.swing.JFrame {
             }
         } catch (SQLException ex) {
             ex.printStackTrace(); // Manejar la excepción según tus necesidades
+            String descripcionError = ex.getMessage();
+            manejador.guardarError(descripcionError);
             return -1; // o lanzar una excepción personalizada
+
         }
     }
 

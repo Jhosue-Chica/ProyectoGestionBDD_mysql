@@ -322,6 +322,7 @@ class VentanaActualizarUbicacion extends JFrame {
     }
 
     private void guardarCambios() {
+        ManejadorErroresBD manejador = new ManejadorErroresBD();
         try (Connection conexion = Conexion.obtenerConexion()) {
             // Llamada al procedimiento almacenado
             try (CallableStatement callableStatement = conexion.prepareCall("{call sp_actualizar_ubicacion(?, ?, ?, ?, ?, ?)}")) {
@@ -351,6 +352,8 @@ class VentanaActualizarUbicacion extends JFrame {
             // Manejar excepciones SQL y de formato de número
             JOptionPane.showMessageDialog(this, "Error al guardar los cambios. Verifica los datos ingresados.");
             e.printStackTrace(); // Puedes manejar las excepciones de manera más específica según tus necesidades.
+            String descripcionError = e.getMessage();
+            manejador.guardarError(descripcionError);
         }
     }
     

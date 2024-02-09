@@ -1,33 +1,23 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class ObtenerIP {
 
     public static String obtenerIPPublica() {
         try {
-            URL url = new URL("https://httpbin.org/ip");
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String inputLine;
-            StringBuilder content = new StringBuilder();
-
-            while ((inputLine = reader.readLine()) != null) {
-                content.append(inputLine);
-            }
-
-            reader.close();
-            connection.disconnect();
-
-            // Parsear la respuesta JSON para obtener la dirección IP pública
-            String ipAddress = content.toString().split("\"")[3];
-            return ipAddress;
-        } catch (IOException e) {
+            // Obtenemos la dirección IP de la máquina local
+            InetAddress localHost = InetAddress.getLocalHost();
+            return localHost.getHostAddress(); // Devolvemos la dirección IP en formato String
+        } catch (UnknownHostException e) {
+            // Manejamos la excepción en caso de que no se pueda obtener la dirección IP
             e.printStackTrace();
-            return null; // Manejar el error según sea necesario en tu aplicación
+            return null;
         }
+    }
+
+    public static void main(String[] args) {
+        String ip = obtenerIPPublica();
+        System.out.println("La dirección IP pública es: " + ip);
     }
 }
