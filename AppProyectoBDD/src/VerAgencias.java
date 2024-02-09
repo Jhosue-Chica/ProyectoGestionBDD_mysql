@@ -246,27 +246,28 @@ class VentanaActualizarAgencia extends JFrame {
 
     private void guardarCambios() {
         try {
-            String url = "jdbc:mysql://10.41.1.128:23306/ProyectoU1";
-            String usuario = "root";
-            String contrasena = "admin";
-
-            try (Connection conexion = DriverManager.getConnection(url, usuario, contrasena)) {
+            try (Connection conexion = Conexion.obtenerConexion()) {
                 // Llamada al procedimiento almacenado
-                try (CallableStatement callableStatement = conexion.prepareCall("{call sp_actualizar_agencia(?, ?, ?, ?, ?)}")) {
+                try (CallableStatement callableStatement = conexion.prepareCall("{call sp_actualizar_agencia(?, ?, ?, ?, ?, ?)}")) {
                     callableStatement.setString(1, campoNombre.getText());
                     callableStatement.setInt(2, Integer.parseInt(campoIdGAD.getText()));
                     callableStatement.setDate(3, Date.valueOf(campoFechaCreacion.getText()));
                     callableStatement.setString(4, campoTelefono.getText());
                     callableStatement.setInt(5, agencia.getIdAgencia());
+                    callableStatement.setString(6, ObtenerIP.obtenerIPPublica());
+                    
+                    
+                    
             
                     int filasActualizadas = callableStatement.executeUpdate();
             
                     if (filasActualizadas > 0) {
+                        JOptionPane.showMessageDialog(this, "No se pudo guardar los cambios. Inténtalo nuevamente.");
+                    } else {
+                        
                         JOptionPane.showMessageDialog(this, "Cambios guardados correctamente");
                         ventanaPrincipal.actualizarTabla();
                         dispose();
-                    } else {
-                        JOptionPane.showMessageDialog(this, "No se pudo guardar los cambios. Inténtalo nuevamente.");
                     }
                 }
             } catch (SQLException | NumberFormatException ex) {
@@ -277,6 +278,7 @@ class VentanaActualizarAgencia extends JFrame {
             e.printStackTrace();
         }
     }    
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {

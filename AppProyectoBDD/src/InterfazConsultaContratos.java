@@ -158,9 +158,10 @@ public class InterfazConsultaContratos extends javax.swing.JFrame {
     private void actualizarEstadoContratoEnBD(int idContrato, int nuevoEstado) {
         try (Connection conexion = Conexion.obtenerConexion()) {
             // Llamada al procedimiento almacenado sp_ActualizarEstadoContrato
-            try (CallableStatement callableStatement = conexion.prepareCall("{call sp_ActualizarEstadoContrato(?, ?)}")) {
+            try (CallableStatement callableStatement = conexion.prepareCall("{call sp_ActualizarEstadoContrato(?, ?, ?)}")) {
                 callableStatement.setInt(1, idContrato);
                 callableStatement.setInt(2, nuevoEstado);
+                callableStatement.setString(3, ObtenerIP.obtenerIPPublica());
     
                 boolean resultado = callableStatement.execute();
     

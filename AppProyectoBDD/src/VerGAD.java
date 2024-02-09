@@ -1,3 +1,4 @@
+
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
@@ -267,24 +268,28 @@ class VentanaActualizarGAD extends JFrame {
             // Establecer la conexión a la base de datos
             try (Connection conexion = Conexion.obtenerConexion()) {
                 // Llamada al procedimiento almacenado
-                try (CallableStatement callableStatement = conexion.prepareCall("{call sp_actualizar_gad(?, ?, ?, ?, ?)}")) {
+                try (CallableStatement callableStatement = conexion.prepareCall("{call sp_actualizar_gad(?, ?, ?, ?, ?, ?)}")) {
                     // Establecer los parámetros del procedimiento almacenado
                     callableStatement.setString(1, campoNombre.getText());
                     callableStatement.setInt(2, Integer.parseInt(campoIdTipo.getText()));
                     callableStatement.setInt(3, Integer.parseInt(campoIdUbicacion.getText()));
                     callableStatement.setDate(4, Date.valueOf(campoFechaCreacion.getText()));
                     callableStatement.setInt(5, gad.getIdGAD());
+                    callableStatement.setString(6, ObtenerIP.obtenerIPPublica());
+                    
+                    
     
                     // Ejecutar el procedimiento almacenado
                     int filasActualizadas = callableStatement.executeUpdate();
     
                     if (filasActualizadas > 0) {
+                        JOptionPane.showMessageDialog(this, "No se pudo guardar los cambios. Inténtalo nuevamente.");
+
+                    } else {
                         JOptionPane.showMessageDialog(this, "Cambios guardados correctamente");
                         // Actualizar la tabla en la ventana principal
                         ventanaPrincipal.actualizarTabla();
                         dispose(); // Cierra la ventana después de guardar los cambios
-                    } else {
-                        JOptionPane.showMessageDialog(this, "No se pudo guardar los cambios. Inténtalo nuevamente.");
                     }
                 }
             }

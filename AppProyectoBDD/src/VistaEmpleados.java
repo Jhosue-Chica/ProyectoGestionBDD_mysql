@@ -19,6 +19,7 @@ public class VistaEmpleados extends javax.swing.JFrame {
     private JButton btnContratos, btnGadUbicacion, btnEmpleadosActivos, btnAgenciasContacto, btnRegresar;
 
     public VistaEmpleados() {
+        
         super("Interfaz de Base de Datos");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
@@ -82,7 +83,7 @@ public class VistaEmpleados extends javax.swing.JFrame {
         });
         // Conectar a la base de datos y crear vistas si no existen
         connectToDatabase();
-        createViews();
+        
     }
 
     private void connectToDatabase() {

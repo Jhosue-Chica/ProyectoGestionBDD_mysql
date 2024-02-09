@@ -251,10 +251,6 @@ public class InterfazEmpleado extends javax.swing.JFrame {
         });
     }
 
-    // Conectar a la base de datos
-    String url = "jdbc:mysql://10.41.1.128:23306/ProyectoU1";
-    String usuario = "root";
-    String contrasena = "admin";
 
     private void agregarEmpleado() {
 
@@ -269,7 +265,7 @@ public class InterfazEmpleado extends javax.swing.JFrame {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             Date fechaNacimiento = dateFormat.parse(txtFechaNacimiento.getText());
 
-            try (Connection conexion = DriverManager.getConnection(url, usuario, contrasena)) {
+            try (Connection conexion = Conexion.obtenerConexion()) {
                 // Obtener el próximo ID de empleado
                 int nuevoIdEmpleado = obtenerProximoIdEmpleado();
 
@@ -280,7 +276,7 @@ public class InterfazEmpleado extends javax.swing.JFrame {
                 }
 
 
-                    try (CallableStatement callableStatement = (CallableStatement) conexion.prepareCall("{call sp_insertar_empleado(?, ?, ?, ?, ?, ?)}")) {
+                    try (CallableStatement callableStatement = (CallableStatement) conexion.prepareCall("{call sp_insertar_empleado(?, ?, ?, ?, ?, ?, ?)}")) {
                         // Establecer los valores de los parámetros
                         callableStatement.setInt(1, nuevoIdEmpleado);
                         callableStatement.setString(2, nombre);
@@ -288,6 +284,7 @@ public class InterfazEmpleado extends javax.swing.JFrame {
                         callableStatement.setString(4, direccion);
                         callableStatement.setString(5, telefono);
                         callableStatement.setDate(6, new java.sql.Date(fechaNacimiento.getTime()));
+                        callableStatement.setString(7, ObtenerIP.obtenerIPPublica()); // Ejemplo de dirección IP
                         
                         // Ejecutar el procedimiento almacenado
                         callableStatement.execute();
@@ -307,7 +304,7 @@ public class InterfazEmpleado extends javax.swing.JFrame {
 
     private int obtenerProximoIdEmpleado() {
 
-        try (Connection conexion = DriverManager.getConnection(url, usuario, contrasena)) {
+        try (Connection conexion = Conexion.obtenerConexion()) {
             String sql = "SELECT MAX(id_empleado) FROM EMPLEADO";
             try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {

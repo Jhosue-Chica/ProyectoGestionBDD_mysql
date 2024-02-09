@@ -322,30 +322,38 @@ class VentanaActualizarUbicacion extends JFrame {
     }
 
     private void guardarCambios() {
-        try {
-            Connection conexion = Conexion.obtenerConexion();
-    
+        try (Connection conexion = Conexion.obtenerConexion()) {
             // Llamada al procedimiento almacenado
-            try (CallableStatement callableStatement = conexion.prepareCall("{call sp_actualizar_ubicacion(?, ?, ?, ?, ?)}")) {
+            try (CallableStatement callableStatement = conexion.prepareCall("{call sp_actualizar_ubicacion(?, ?, ?, ?, ?, ?)}")) {
+                // Establecer los parámetros del procedimiento almacenado
                 callableStatement.setString(1, campoNombre.getText());
                 callableStatement.setBoolean(2, Boolean.parseBoolean(campoEstado.getText()));
                 callableStatement.setInt(3, Integer.parseInt(campoIdPadre.getText()));
                 callableStatement.setString(4, campoTipoUbicacion.getText());
                 callableStatement.setInt(5, ubicacion.getIdUbicacion());
-    
+                callableStatement.setString(6, ObtenerIP.obtenerIPPublica()); // Ejemplo de dirección IP
+        
+                // Ejecutar la actualización
                 int filasActualizadas = callableStatement.executeUpdate();
-    
+        
+                // Comprobar si se actualizaron filas y mostrar un mensaje apropiado
                 if (filasActualizadas > 0) {
-                    JOptionPane.showMessageDialog(this, "Cambios guardados correctamente");
-                    ventanaPrincipal.actualizarTabla();
-                    dispose();
-                } else {
                     JOptionPane.showMessageDialog(this, "No se pudo guardar los cambios. Inténtalo nuevamente.");
+
+                } else {
+                    
+                    JOptionPane.showMessageDialog(this, "Cambios guardados correctamente");
+                    ventanaPrincipal.actualizarTabla(); // Actualizar la tabla en la ventana principal
+                    dispose(); // Cerrar la ventana actual
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException | NumberFormatException e) {
+            // Manejar excepciones SQL y de formato de número
+            JOptionPane.showMessageDialog(this, "Error al guardar los cambios. Verifica los datos ingresados.");
+            e.printStackTrace(); // Puedes manejar las excepciones de manera más específica según tus necesidades.
         }
     }
+    
+    
     
 }

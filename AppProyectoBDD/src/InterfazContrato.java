@@ -19,8 +19,7 @@ import java.util.Date;
 
 public class InterfazContrato extends javax.swing.JFrame {
 
-    // Conectar a la base de datos
-    String url = "jdbc:mysql://10.41.1.128:23306/ProyectoU1?useSSL=false&user=root&password=admin";
+
 
 
     private JLabel lblSiguienteIdContrato, lblNombreApellido, lblNombreEmpleado;
@@ -419,7 +418,7 @@ public class InterfazContrato extends javax.swing.JFrame {
         // Lógica para buscar y mostrar el nombre y apellido del empleado
         // Utiliza el lblNombreEmpleado para mostrar la información
         try {
-            Connection conexion = DriverManager.getConnection(url);
+            Connection conexion = Conexion.obtenerConexion();
 
             String sql = "SELECT nombre, apellidos FROM EMPLEADO WHERE id_empleado = ?";
             try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
@@ -454,7 +453,7 @@ public class InterfazContrato extends javax.swing.JFrame {
         // y mostrarlas en el JComboBox cboIdAgencia
         // Puedes utilizar consultas SQL y la conexión a la base de datos
         try {
-            Connection conexion = DriverManager.getConnection(url);
+            Connection conexion = Conexion.obtenerConexion();
 
             String sql = "SELECT id_agencia, nombre FROM AGENCIAS";
             try (PreparedStatement preparedStatement = conexion.prepareStatement(sql); ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -486,9 +485,9 @@ public class InterfazContrato extends javax.swing.JFrame {
             // Convertir el sueldo a un valor decimal
             double sueldo = Double.parseDouble(txtSueldo.getText());
     
-            try (Connection conexion = DriverManager.getConnection(url)) {
+            try (Connection conexion = Conexion.obtenerConexion()) {
                 // Llamar al procedimiento almacenado
-                String sql = "{CALL sp_insertar_contrato(?, ?, ?, ?, ?, ?)}";
+                String sql = "{CALL sp_insertar_contrato(?, ?, ?, ?, ?, ?, ?)}";
     
                 try (CallableStatement callableStatement = (CallableStatement) conexion.prepareCall(sql)) {
                     // Establecer los valores de los parámetros
@@ -498,22 +497,21 @@ public class InterfazContrato extends javax.swing.JFrame {
                     callableStatement.setDate(4, new java.sql.Date(fechaFin.getTime()));
                     callableStatement.setInt(5, idAgencia);
                     callableStatement.setDouble(6, sueldo);
+                    callableStatement.setString(7, ObtenerIP.obtenerIPPublica()); // Ejemplo de dirección IP
     
                     // Ejecutar el procedimiento almacenado
-                    ResultSet resultSet = callableStatement.executeQuery();
+                    boolean resultado = callableStatement.execute();
     
-                    // Obtener el nuevo ID de contrato
-                    if (resultSet.next()) {
-                        int nuevoIdContrato = resultSet.getInt("nuevo_id");
-                        // Muestra un mensaje indicando que se ha agregado el contrato con el nuevo ID
-                        JOptionPane.showMessageDialog(this, "Contrato agregado correctamente. Nuevo ID de Contrato: " + nuevoIdContrato);
+                    
     
-                        // Actualizar el próximo ID de contrato después de agregar
-                        lblSiguienteIdContrato.setText("Siguiente ID de Contrato: " + obtenerProximoIdContrato());
+                    // Muestra un mensaje indicando que se ha agregado el contrato
+                    JOptionPane.showMessageDialog(this, "Contrato agregado correctamente.");
     
-                        // Limpiar los campos después de agregar el contrato
-                        limpiarCamposContrato();
-                    }
+                    // Actualizar el próximo ID de contrato después de agregar
+                    lblSiguienteIdContrato.setText("Siguiente ID de Contrato: " + obtenerProximoIdContrato());
+    
+                    // Limpiar los campos después de agregar el contrato
+                    limpiarCamposContrato();
                 }
             }
         } catch (SQLException | ParseException | NumberFormatException ex) {
@@ -522,8 +520,9 @@ public class InterfazContrato extends javax.swing.JFrame {
         }
     }
     
+    
     private int obtenerProximoIdContrato() {
-        try (Connection conexion = DriverManager.getConnection(url)) {
+        try (Connection conexion = Conexion.obtenerConexion()) {
             String sql = "SELECT MAX(id_contrato) FROM CONTRATOS";
             try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -553,7 +552,7 @@ public class InterfazContrato extends javax.swing.JFrame {
     }
 
     private int obtenerSiguienteIdContrato() {
-        try (Connection conexion = DriverManager.getConnection(url)) {
+        try (Connection conexion = Conexion.obtenerConexion()) {
             String sql = "SELECT MAX(id_contrato) FROM CONTRATOS";
             try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
